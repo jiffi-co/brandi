@@ -6,7 +6,7 @@
   <a href="LICENSE"><img alt="Licence: MIT" src="https://img.shields.io/badge/licence-MIT-0f063c"></a>
   <img alt="Works with Claude Code" src="https://img.shields.io/badge/works%20with-Claude%20Code-599cff">
   <img alt="Also runs on Codex" src="https://img.shields.io/badge/also%20runs%20on-Codex-599cff">
-  <a href="https://github.com/jake-jiffi/builder-kit-lean"><img alt="Pairs with builder-kit" src="https://img.shields.io/badge/pairs%20with-builder--kit-d5e6ff"></a>
+  <a href="https://github.com/jiffi-co/builder-kit-lean"><img alt="Pairs with builder-kit" src="https://img.shields.io/badge/pairs%20with-builder--kit-d5e6ff"></a>
   <a href="https://clarityclub.jiffi.co"><img alt="From Jiffi Clarity Club" src="https://img.shields.io/badge/from-Jiffi%20Clarity%20Club-fff58a"></a>
 </p>
 
@@ -30,7 +30,7 @@ a canvas.
 **1. Clone it,** in a terminal:
 
 ```bash
-git clone https://github.com/jake-jiffi/brandi.git
+git clone https://github.com/jiffi-co/brandi.git
 cd brandi
 ```
 
@@ -52,6 +52,14 @@ Code, at its prompt, not in a terminal:
 
 It writes into `brand/` in whatever directory you started it in, so start it where you want the
 brand to live.
+
+**Already use builder-kit?** brandi also installs from the builder-kit-lean marketplace, with no
+clone. In a terminal:
+
+```bash
+claude plugin marketplace add jiffi-co/builder-kit-lean
+claude plugin install brandi@builder-kit-lean
+```
 
 **On Codex** the same plugin installs from the same files: in a terminal, `codex plugin marketplace add
 <path or owner/repo>` then `codex plugin add brandi@brandi`, and `codex plugin list` should show it.
