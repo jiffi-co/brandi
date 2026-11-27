@@ -460,7 +460,7 @@ describe('the audit warns where a pair list cannot', () => {
     const once = rail('#0B4A7D');
     assert.equal(once.length, 1, 'the same blue on the dark canvas went unremarked');
     assert.equal(once[0].theme, 'dark');
-    // a proof run's first fix: a step darker, still 1.26:1 above the dark surface, and it read as unchanged.
+    // A proof run's first fix: a step darker, still 1.26:1 above the dark surface, and it read as unchanged.
     assert.equal(rail({ light: '#0B4A7D', dark: '#002E4D' }).length, 1, 'a dark value that still stands above the page');
     assert.deepEqual(rail({ light: '#0B4A7D', dark: '#071F31' }), [], 'a navy at the dark surfaces\' lightness');
     assert.deepEqual(rail('#0B0B0C'), [], 'a black rail already sits back in dark');

@@ -1078,9 +1078,8 @@ reviewer, which 08 already asks for.
 
 ## v1.23.0: what a full proof run fixed, and brand-full
 
-A proof run took a brand through
-`product-system` to a published system. It met the bar in round 4. Each fix below has a check or
-test that fails without it.
+A proof run took a brand through `product-system` to a published system. It met the bar in
+round 4. Each fix below has a check or test that fails without it.
 
 - `/brandi:brand-full` runs the brand and the product system as one job: one batch of questions,
   no stop between the halves, and a disk check before the product half.

@@ -40,7 +40,7 @@ of those with either left out. One colour is both themes, and it is audited in b
 highlight, which means the same at night, and a black rail, which already sits back. A rail in a
 colour needs a dark value of its own, in its hue at the dark surfaces' lightness: decided once, it
 stays put while the dark primary steps lighter, and becomes the brightest large surface on the dark
-canvas (a proof run's its navy on #111111). A step darker is not enough: a proof run's #002E4D still stood
+canvas (a proof run's navy on #111111). A step darker is not enough: its first fix, #002E4D, stood
 1.26:1 above the surface and read as unchanged; #071F31, at 1.05:1, read as dark mode. The audit warns
 at 1.2:1 or more. One colour rarely suits a canvas, an ink or a
 primary, which a dark theme needs its own of: the audit fails the theme the value cannot serve, and

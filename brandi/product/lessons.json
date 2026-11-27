@@ -2878,7 +2878,7 @@
   },
   {
    "id": "L155",
-   "broke": "The Switch thumb was on-primary in both states. A navy primary lifts to a pale blue in dark, its on-primary goes near-black, and that thumb measured 2.72:1 on the grey off track (a proof run). The off thumb is now surface-raised, which line-control already clears at 3:1.",
+   "broke": "The Switch thumb was on-primary in both states. A navy primary lifts to a pale blue in dark, its on-primary goes near-black, and that thumb measured 2.72:1 on the grey off track. The off thumb is now surface-raised, which line-control already clears at 3:1.",
    "trait": "navy-primary",
    "guards": [
     {

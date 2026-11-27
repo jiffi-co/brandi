@@ -1356,8 +1356,8 @@ export function auditProductTokens(tokens) {
     if (has('success-solid') && has('danger-solid') && !cvdSafePair(at('success-solid'), at('danger-solid')).safe) {
       warnings.push({ theme, area: 'colour-vision', message: 'Success and danger are hard to tell apart with a red-green colour vision deficiency. Expected for these hues: never carry a status in colour alone.' });
     }
-    // A coloured rail that stands above the dark page is the brightest large surface on every dark screen: a proof run's
-    // its navy, decided once for both themes, on #111111, and then its first dark value, #002E4D, a step darker that
+    // A coloured rail that stands above the dark page is the brightest large surface on every dark screen: a proof
+    // run's navy, decided once for both themes, on #111111, and then its first dark value, #002E4D, a step darker that
     // still stood 1.26:1 above the surface and read as unchanged. The rail is decided, so the audit says so and the
     // person decides its dark value; a rail at the surfaces' lightness, or a black one darker than them, is left alone.
     if (theme === 'dark' && has('rail') && has('surface')) {
