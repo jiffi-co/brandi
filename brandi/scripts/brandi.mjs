@@ -42,6 +42,8 @@
  *                                     measure every declared pair in both themes
  *   brandi product globals [--tokens product/tokens.json] [--out product/globals.css]
  *                                     the starter's globals.css for Next.js, Tailwind 4 and shadcn
+ *   brandi product theme [--tokens product/tokens.json] [--out product/shadcn-theme.json]
+ *                                     the system as a shadcn registry:theme item, for any shadcn project
  *   brandi product starter [--out product/starter] [--kit]
  *                                     the product kit as a Next.js starter, dressed in the tokens
  *   brandi product bundle [--starter product/starter]
@@ -76,7 +78,7 @@ import { buildSystem, assertPublishable } from './system.mjs';
 import { buildProductTokens, auditProductTokens, auditSummary, toProductCss, shapeKitDefaults, textureMove, neutralsInWords } from './producttokens.mjs';
 import { measurePages, summarise as summariseShapes } from './productmeasure.mjs';
 import { fetchFonts } from './productfonts.mjs';
-import { toStarterGlobals } from './productglobals.mjs';
+import { toStarterGlobals, toShadcnTheme } from './productglobals.mjs';
 import { systemIdentity, writeStarter, buildBundle } from './productstarter.mjs';
 import { CHARACTER_STATES } from './productbrand.mjs';
 import { runGates, judgeRound, roundMarkdown, publishedSection, serveStarter, starterRoutes, WIDTHS, MACHINE_GATES } from './productgates.mjs';
@@ -2995,6 +2997,12 @@ const PRODUCT_USAGE = `brandi product: the product layer, for the product-system
       The starter's globals.css for Next.js, Tailwind CSS 4 and shadcn/ui, from
       the tokens. The starter ships the same generator, so the two never drift.
 
+  brandi product theme [--tokens product/tokens.json] [--out product/shadcn-theme.json]
+      The system's colours, corner radius and faces as a shadcn/ui registry item
+      (registry:theme), resolved to plain values. \`npx shadcn add\` on the file or
+      its URL dresses any shadcn project, whatever its primitives. The type styles
+      and the rest stay in globals.css.
+
   brandi product starter [--tokens product/tokens.json] [--out product/starter] [--kit]
       Copy the product kit into a Next.js starter and write what the system owns:
       tokens, identity, globals.css, the market's locale, the product's name and
@@ -3305,6 +3313,17 @@ async function cmdProduct(flags, positional) {
     await writeFile(target, css);
     const rel = path.relative(process.cwd(), target);
     emit(`Wrote ${rel} (${css.split('\n').length} lines) from ${path.relative(process.cwd(), file)}.`, { ok: true, file: rel });
+    return;
+  }
+  if (sub === 'theme') {
+    const file = path.resolve(typeof flags.tokens === 'string' ? flags.tokens : path.join('product', 'tokens.json'));
+    if (!existsSync(file)) return fail(`No tokens file at ${path.relative(process.cwd(), file)}. Run \`brandi product tokens\` first.`);
+    const target = path.resolve(typeof flags.out === 'string' ? flags.out : path.join('product', 'shadcn-theme.json'));
+    const item = toShadcnTheme(JSON.parse(await readFile(file, 'utf8')));
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, `${JSON.stringify(item, null, 2)}\n`);
+    const rel = path.relative(process.cwd(), target);
+    emit(`Wrote ${rel}, the shadcn theme ${item.name}: ${Object.keys(item.cssVars.light).length} variables in light, ${Object.keys(item.cssVars.dark).length} in dark. Apply it with npx shadcn add ./${rel}`, { ok: true, file: rel, name: item.name });
     return;
   }
   if (sub === 'starter') {

@@ -53,6 +53,7 @@ $A product measure --url <site>       # the brand's live shapes, for where the g
 $A product fonts                      # the brand's faces as files, from Google Fonts where it hosts them
 $A product audit                      # measure every pair a tokens file declares, in both themes
 $A product globals                    # the starter's globals.css, from the tokens
+$A product theme                      # the colours, radius and faces as a shadcn registry:theme, for any shadcn project
 $A product starter                    # the product kit as a Next.js starter, dressed in the tokens
 $A product bundle                     # the canvas bundle from the starter's components, and every card
 $A product boards                     # the boards the system draws for itself: foundations, every component, Main (--heights: authored boards too)

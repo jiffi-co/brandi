@@ -275,6 +275,7 @@ The arithmetic is in the command line:
 brandi product tokens     # every role a working screen needs, in both themes, solved for contrast
 brandi product audit      # measure every pair the tokens declare, in both themes
 brandi product globals    # the starter's globals.css, from the same tokens
+brandi product theme      # the same colours as a shadcn theme: npx shadcn add it to any shadcn project
 ```
 
 `product tokens` keeps a brand colour that passes and moves one that fails only as far as it must,

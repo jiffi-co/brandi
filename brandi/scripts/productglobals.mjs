@@ -479,6 +479,45 @@ ${textureRule(tokens)}/* Loading states: under a second, people see nothing; aft
 }
 
 /**
+ * The system as a shadcn/ui registry item of type registry:theme. `npx shadcn add` on its file or URL sets the
+ * system's colours, corner radius and faces in any shadcn project, whatever primitives it is built on. Values are
+ * resolved, never var(--role): the project it lands in has none of the system's roles. It carries shadcn's own
+ * variables and nothing else, so the type styles, the rail's marks and the forced-colours rules stay in globals.css,
+ * which a product built on the starter uses instead. The faces are named, not loaded: the project loads them.
+ */
+export function toShadcnTheme(tokens, { shadcn = SHADCN } = {}) {
+  const colours = new Map(tokens.color.tokens.map((t) => [t.name, t.value]));
+  // shadcn's primary is the system's role of the same name; the rest are mapped.
+  const vars = [['primary', 'primary'], ...shadcn];
+  const missing = [...new Set(vars.map(([, role]) => role).filter((role) => !colours.has(role)))];
+  if (missing.length) throw new Error(`a shadcn theme needs these roles, which the tokens do not have: ${missing.join(', ')}`);
+  const value = (role, theme, seen = []) => {
+    if (seen.includes(role)) throw new Error(`the colour role ${role} aliases itself: ${[...seen, role].join(' -> ')}`);
+    if (!colours.has(role)) throw new Error(`the colour role ${seen.at(-1)} aliases ${role}, which the tokens do not have`);
+    const v = colours.get(role);
+    const raw = String(typeof v === 'object' && v !== null ? (v[theme] ?? v.light) : v).trim();
+    const alias = /^\{([^}]+)\}$/.exec(raw);
+    return alias ? value(alias[1], theme, [...seen, role]) : raw;
+  };
+  const scope = (theme) => Object.fromEntries(vars.map(([name, role]) => [name, value(role, theme)]));
+  const radius = (tokens.radius?.tokens ?? []).find((t) => t.name === 'radius-md')?.value;
+  const fam = tokens.type?.families ?? {};
+  const slug = String(tokens.name ?? 'brandi-system').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'brandi-system';
+  return {
+    $schema: 'https://ui.shadcn.com/schema/registry-item.json',
+    name: slug,
+    type: 'registry:theme',
+    title: String(tokens.name ?? slug),
+    description: `${tokens.name ?? 'The system'}'s colours, corner radius and faces for shadcn/ui, from its tokens. Load the faces in the project.`,
+    cssVars: {
+      theme: { ...(fam.sans && { 'font-sans': fam.sans, 'font-heading': fam.sans }), ...(fam.mono && { 'font-mono': fam.mono }) },
+      light: { ...(radius && { radius }), ...scope('light') },
+      dark: scope('dark'),
+    },
+  };
+}
+
+/**
  * The command line, for when this file runs as tools/build-globals.mjs.
  * Returns the exit code rather than calling process.exit, so it can be tested.
  */
@@ -508,4 +547,4 @@ if (runPath && import.meta.url === pathToFileURL(runPath).href) {
   process.exitCode = runCli(process.argv.slice(2));
 }
 
-export default { toStarterGlobals, railIsDark, railMarks, runCli, SHADCN };
+export default { toStarterGlobals, toShadcnTheme, railIsDark, railMarks, runCli, SHADCN };
