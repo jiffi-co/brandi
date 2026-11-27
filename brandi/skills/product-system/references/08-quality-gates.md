@@ -274,6 +274,15 @@ Set guardrails and the bar, and leave room to think. Every brief carries:
   into text, and an element there reads "[object Object]" (`06-canvas.md`, The mount). axe and the
   detector read it as words. `axe-pages.mjs` reports text or an attribute that reads
   "[object Object]" as `object-as-text`, naming the element.
+- **A page an agent cannot act on.** An agent drives a product by role and name, as a screen reader's
+  list of controls reads it, and both pass axe. A control repeated in two rows of one table or list,
+  with nothing in its name to say which row, reads Edit, Edit, Edit: `axe-pages.mjs` reports it as
+  `row-control-unnamed`, naming the list and the words. Name the row in the control (Edit [Invoice
+  1042], visible or visually hidden), as DataTable's checkbox and Toast's buttons do. Links that go to
+  one address are one place, however many rows show them. A dialog with a destructive button and no
+  description it can read is `destructive-dialog-undescribed`: give it the sentence that says what
+  happens, and to what (Dialog's `description`). Radios are left to their group's name, and what a
+  menu or a listbox holds to its trigger's.
 - **A class the bundle never built.** The system's `bundle.css` holds only the Tailwind classes the
   kit's components use, so a board's own class can select nothing and change nothing on screen.
   `$A validate` names each class no stylesheet the board loads selects (`06-canvas.md`, Five

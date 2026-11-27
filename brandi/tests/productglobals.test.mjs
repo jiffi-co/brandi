@@ -1,8 +1,8 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { toStarterGlobals, railMarks, SHADCN } from '../scripts/productglobals.mjs';
+import { toStarterGlobals, toShadcnTheme, railMarks, SHADCN } from '../scripts/productglobals.mjs';
 import { buildProductTokens } from '../scripts/producttokens.mjs';
 import { buildSystem } from '../scripts/system.mjs';
 import { systemInputFromBrand } from '../scripts/brandfile.mjs';
@@ -114,5 +114,55 @@ describe('the file runs on its own, as a product\'s tools/build-globals.mjs', ()
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('toShadcnTheme', () => {
+  const theme = toShadcnTheme(tokens);
+  const role = (name, mode) => {
+    const v = tokens.color.tokens.find((t) => t.name === name).value;
+    const raw = typeof v === 'object' ? (v[mode] ?? v.light) : v;
+    return /^\{(.+)\}$/.test(raw) ? role(raw.slice(1, -1), mode) : raw;
+  };
+
+  test('is a registry:theme item named from the system, with every shadcn variable in both modes', () => {
+    assert.equal(theme.type, 'registry:theme');
+    assert.equal(theme.name, 'muddy-paws-product-system');
+    for (const mode of ['light', 'dark']) {
+      for (const [name] of [['primary'], ...SHADCN]) assert.ok(theme.cssVars[mode][name], `${mode} ${name}`);
+    }
+    assert.equal(theme.cssVars.light.radius, tokens.radius.tokens.find((t) => t.name === 'radius-md').value);
+    assert.match(theme.cssVars.theme['font-sans'], /,/, 'the sans stack, fallbacks and all');
+  });
+
+  test('every value is resolved to the role it maps, alias chains followed in each mode, never a variable or an alias', () => {
+    for (const mode of ['light', 'dark']) {
+      for (const [name, r] of [['primary', 'primary'], ...SHADCN]) {
+        const got = theme.cssVars[mode][name];
+        assert.doesNotMatch(got, /^\{|var\(/, `${mode} ${name} is ${got}`);
+        assert.equal(got, role(r, mode), `${mode} ${name} is ${r}`);
+      }
+    }
+  });
+
+  test('a missing role, an alias to nothing and an alias loop are refused by name', () => {
+    const without = structuredClone(tokens);
+    without.color.tokens = without.color.tokens.filter((t) => t.name !== 'rail');
+    assert.throws(() => toShadcnTheme(without), /do not have: rail$/);
+    const dangling = structuredClone(tokens);
+    dangling.color.tokens.find((t) => t.name === 'rail').value = { light: '{nowhere}', dark: '{nowhere}' };
+    assert.throws(() => toShadcnTheme(dangling), /rail aliases nowhere/);
+    const loop = structuredClone(tokens);
+    loop.color.tokens.find((t) => t.name === 'rail').value = { light: '{rail}', dark: '{rail}' };
+    assert.throws(() => toShadcnTheme(loop), /rail aliases itself: rail -> rail/);
+  });
+
+  // shadcn's own schema lives in the kit's node_modules, which brandi does not carry.
+  const modules = process.env.BRANDI_KIT_MODULES && path.resolve(process.env.BRANDI_KIT_MODULES);
+  const schema = modules && path.join(modules, 'shadcn', 'dist', 'schema', 'index.js');
+  test("shadcn's own registry item schema accepts it", { skip: schema && existsSync(schema) ? false : "needs the kit's node_modules: set BRANDI_KIT_MODULES" }, async () => {
+    const { registryItemSchema } = await import(schema);
+    const parsed = registryItemSchema.safeParse(theme);
+    assert.ok(parsed.success, JSON.stringify(parsed.error?.issues?.slice(0, 3)));
   });
 });

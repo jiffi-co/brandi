@@ -212,6 +212,24 @@ next/font/local, a hosted face through next/font/google, each with only the weig
 use. Load upright styles only, unless a product really needs italics. An italic file nobody uses is
 a wasted preload.
 
+### A shadcn project that is not the starter
+
+A product built on some other shadcn setup (Base UI underneath, an older app, someone else's
+starter) can still wear the system. `$A product theme` writes the system as a shadcn registry item
+of type `registry:theme`, every value resolved to plain colour in both themes:
+
+```
+$A product theme --tokens product/tokens.json --out product/shadcn-theme.json
+npx shadcn add ./product/shadcn-theme.json
+```
+
+It sets shadcn's own variables (background, primary, the chart and sidebar colours and the rest),
+`--radius` from `radius-md`, and the sans and mono stacks. That is all shadcn has names for. The type
+styles, the role utilities, the rail's marks and the forced-colours rules live only in
+`globals.css`, so the starter still takes `globals.css`, never the theme. The theme names the faces
+and loads none of them: the project loads its own. Host the file anywhere and `npx shadcn add <url>`
+works the same.
+
 ### How the tokens become `globals.css`
 
 One generator, used in two places, so the two cannot drift. The skill runs it:

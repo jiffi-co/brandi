@@ -54,6 +54,9 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(function Toast
   ref
 ) {
   const glyph = icon ?? TONE_ICON[tone]
+  // Each button's name ends with the toast's sentence, so two toasts read Undo [3] invoices sent. and Undo [1]
+  // payslip emailed., not Undo twice: a list of controls, or an agent acting by name, can tell them apart.
+  const ids = React.useId()
   const toast = (
     <div
       ref={ref}
@@ -68,16 +71,19 @@ export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(function Toast
       {...rest}
     >
       {glyph ? <Icon name={glyph} className="mt-2 pointer-coarse:mt-3.5" /> : null}
-      <div data-slot="toast-message" className="min-w-0 flex-1 py-1.5 type-body wrap-break-word pointer-coarse:py-3">
+      <div id={`${ids}-message`} data-slot="toast-message" className="min-w-0 flex-1 py-1.5 type-body wrap-break-word pointer-coarse:py-3">
         {children}
       </div>
       {action ? (
-        <button type="button" data-slot="toast-action" className={ACTION} onClick={onAction}>
+        <button type="button" id={`${ids}-action`} aria-labelledby={`${ids}-action ${ids}-message`} data-slot="toast-action" className={ACTION} onClick={onAction}>
           {action}
         </button>
       ) : null}
       {onClose ? (
-        <button type="button" data-slot="toast-close" aria-label={closeLabel} className={CLOSE} onClick={onClose}>
+        <button type="button" aria-labelledby={`${ids}-close ${ids}-message`} data-slot="toast-close" className={CLOSE} onClick={onClose}>
+          <span id={`${ids}-close`} hidden>
+            {closeLabel}
+          </span>
           <Icon name="X" />
         </button>
       ) : null}

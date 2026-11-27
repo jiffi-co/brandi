@@ -11,7 +11,10 @@
  * page has settled. Every violation is reported with its impact; the gate counts any violation as a
  * failure, whatever its impact. An image that did not load is reported the same way (image-not-loaded),
  * because axe passes it, and so is a form with a required field and no noValidate (form-without-novalidate), and
- * text or an attribute that reads [object Object], an element joined into a string (object-as-text).
+ * text or an attribute that reads [object Object], an element joined into a string (object-as-text). Two more
+ * read the page by role and name, as an agent or a screen reader's list of controls does: a control repeated
+ * in every row of a table or list that does not name its row (row-control-unnamed), and a dialog with a
+ * destructive button and no description (destructive-dialog-undescribed).
  */
 
 import { chromium } from "playwright"
@@ -143,6 +146,47 @@ for (const p of pages) {
       return found
     })
     if (objects.length) r.push({ id: "object-as-text", impact: "serious", help: "A value drawn as text reads [object Object]: give each element its own {{hole}}, alone in its text node (06-canvas.md)", nodes: objects.slice(0, 5) })
+    // Read as an agent reads it, by role and name, as a screen reader's list of controls does. A control repeated in
+    // every row of a table or list names its row, as DataTable's checkbox does (Select [Invoice 1042]): Edit, Edit,
+    // Edit is three controls nobody can tell apart without walking the rows. And a dialog with a destructive button
+    // says what happens, and to what, in a description read before the button (Dialog's description).
+    const agent = await page.evaluate(() => {
+      axe.setup(document)
+      try {
+        const name = (el) => axe.commons.text.accessibleText(el).replace(/\s+/g, " ").trim()
+        const shown = (el) => el.getClientRects().length > 0 && !el.closest("[aria-hidden='true'], [inert]")
+        const where = (el) => el.getAttribute("data-slot") ?? `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}`
+        // Radios are left out: their group carries the name. So is what a menu or a listbox holds: its trigger does.
+        const controls = "button, a[href], input[type=checkbox], [role=button], [role=link], [role=checkbox], [role=switch]"
+        const lists = new Map()
+        for (const el of document.querySelectorAll(controls)) {
+          if (!shown(el) || el.closest("[role=menu], [role=listbox]")) continue
+          const row = el.closest("tr, [role=row], li, [role=listitem]")
+          const n = name(el).toLowerCase()
+          if (!row?.parentElement || !n) continue
+          // Links to one address are one place, however many rows name it: a client's name linking to the client.
+          const target = el.matches("a[href]") ? el.href : el
+          const names = lists.get(row.parentElement) ?? new Map()
+          const seen = names.get(n) ?? { rows: new Set(), targets: new Set() }
+          seen.rows.add(row)
+          seen.targets.add(target)
+          lists.set(row.parentElement, names.set(n, seen))
+        }
+        const repeated = []
+        for (const [list, names] of lists) for (const [n, { rows, targets }] of names) if (rows.size > 1 && targets.size > 1) repeated.push(`${where(list)}: "${n.slice(0, 40)}" in ${rows.size} rows`)
+        const undescribed = []
+        for (const d of document.querySelectorAll("[role=dialog], [role=alertdialog], dialog")) {
+          if (!shown(d) || !d.querySelector("button[data-variant^='destructive'], [role=button][data-variant^='destructive']")) continue
+          const said = (d.getAttribute("aria-describedby") ?? "").split(/\s+/).map((id) => (id && document.getElementById(id)?.textContent.trim()) || "").join("")
+          if (!said) undescribed.push(`${where(d)}: ${name(d).slice(0, 60) || "(no name)"}`)
+        }
+        return { repeated, undescribed }
+      } finally {
+        axe.teardown()
+      }
+    })
+    if (agent.repeated.length) r.push({ id: "row-control-unnamed", impact: "moderate", help: "A control repeated in every row names its row (Edit [Invoice 1042], not Edit), so a list of controls, or an agent acting by name, can tell them apart", nodes: agent.repeated.slice(0, 5) })
+    if (agent.undescribed.length) r.push({ id: "destructive-dialog-undescribed", impact: "serious", help: "A dialog with a destructive button says what happens, and to what, in its description, read before the button", nodes: agent.undescribed.slice(0, 5) })
     results.push({ ...p, ...(retried && { retried }), violations: r })
   } catch (e) {
     results.push({ ...p, ...(retried && { retried }), violations: [], error: String(e.message ?? e).split("\n")[0] })

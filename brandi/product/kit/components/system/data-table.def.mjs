@@ -78,16 +78,16 @@ const team = [
   { id: "sam", person: "[Sam Lee]", hours: null, change: null, billable: null, sites: [], rate: 79.5 },
 ]
 
+// A shift is a person on a day, so that names the row: each row's link reads differently, where the person alone
+// read [Priya Nair] three times over three shifts.
 const shifts = Array.from({ length: 12 }, (_, i) => ({
   id: `shift-${i + 1}`,
-  who: ["[Priya Nair]", "[Marcus Chen]", "[Ana Silva]", "[Sam Lee]"][i % 4],
-  day: ["[Mon 3 June]", "[Tue 4 June]", "[Wed 5 June]", "[Thu 6 June]", "[Fri 7 June]", "[Sat 8 June]"][i % 6],
+  shift: `${["[Priya Nair]", "[Marcus Chen]", "[Ana Silva]", "[Sam Lee]"][i % 4]}, ${["[Mon 3 June]", "[Tue 4 June]", "[Wed 5 June]", "[Thu 6 June]", "[Fri 7 June]", "[Sat 8 June]"][i % 6]}`,
   site: ["[Bondi]", "[Manly]"][i % 2],
   hours: [7.5, 8, 6.25, 9.5, 4, 7.75][i % 6],
 }))
 const shiftColumns = [
-  { key: "who", label: "Person", type: "strong" },
-  { key: "day", label: "Day" },
+  { key: "shift", label: "Shift", type: "strong" },
   { key: "site", label: "Site" },
   { key: "hours", label: "Hours", type: "hours" },
 ]

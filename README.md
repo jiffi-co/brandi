@@ -275,6 +275,7 @@ The arithmetic is in the command line:
 brandi product tokens     # every role a working screen needs, in both themes, solved for contrast
 brandi product audit      # measure every pair the tokens declare, in both themes
 brandi product globals    # the starter's globals.css, from the same tokens
+brandi product theme      # the same colours as a shadcn theme: npx shadcn add it to any shadcn project
 ```
 
 `product tokens` keeps a brand colour that passes and moves one that fails only as far as it must,
@@ -342,7 +343,7 @@ cd brandi
 node --test "tests/*.test.mjs"
 ```
 
-2,351 tests. They include property tests over the colour and type engines against hundreds of random
+2,357 tests. They include property tests over the colour and type engines against hundreds of random
 seeds, a full end-to-end run of the real command line against the worked example brand in
 `tests/fixtures/muddy-paws.json`, and a robustness suite covering corrupt brand files, missing
 directories, symlink loops, hostile content and paths with spaces in them.
