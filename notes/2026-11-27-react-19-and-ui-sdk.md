@@ -41,8 +41,8 @@ shadcn has said a UI SDK base is coming.
    - The shadcn CLI 4.22.2 to 4.23.1 fixes a minimatch advisory, GHSA-g3hv-75wg-m249, which came
      in through ts-morph.
    - npm audit on a fresh lockfile of the kit: 0 vulnerabilities.
-2. **CI actions.** These are the three bumps Dependabot proposed in #3, #4 and #5. The history
-   rewrite closed those pull requests.
+2. **CI actions.** These are the three bumps Dependabot proposed in #3, #4 and #5. Those pull
+   requests closed when their branches were force-pushed.
 3. **Agent-ready checks in the gates.** `axe-pages.mjs` now reports two things:
    - `row-control-unnamed`: a control repeated in two rows that doesn't name its row.
    - `destructive-dialog-undescribed`: a dialog with a destructive button and no description.
@@ -63,10 +63,13 @@ exits 2 ("Teardown watchdog expired"). A test-only wrapper maps that one exit to
 | | Before (product-system) | After (this branch) |
 |---|---|---|
 | brandi suite | 2,350 of 2,351 | 2,357 of 2,357, none skipped |
-| Kit advisories (npm audit) | 4 moderate (plus the 7 Dependabot alerts on next) | 0 |
+| Kit advisories (npm audit, fresh lockfile) | 5 moderate: next (the 7 Dependabot alerts), and minimatch through shadcn | 0 |
 | A starter's first `next build` | exits 1, `SecurityFatalError` (Next 16.4.3) | exits 0 (Next 16.4.6) |
 | Agent-ready findings on the kit's 204 previews | 4, unreported | 0, and the gates now report them |
-| DataTable, Toast, ToastRegion scripted checks | 58 of 58 | 58 of 58 |
+| Kit catalogue (`try.mjs`, every component) | 1,095 of 1,095 | 1,095 of 1,095 |
+| New rules: 204 component previews | 4 findings, unreported | 0 |
+| New rules: starter routes (15 routes, 3 widths, 2 themes) | not checked | 90 pages, 0 |
+| New rules: the system's generated boards | not checked | 50 renders, 0 |
 | shadcn theme | none | schema-valid, applied by `shadcn add` |
 
 ## The UI SDK gate
@@ -111,8 +114,10 @@ Bundle cost:
 - Three UI SDK primitives add 69 KB gzipped to the canvas bundle.
 - They add 53 KB gzipped to the starter's first load, while Radix stays for everything else.
 
-Some of these failures may be gaps in a time-boxed adapter rather than limits of UI SDK. The ones
-in Next (hydration, first paint) come from how custom elements upgrade, and no adapter fixes that.
+Some of these failures may be gaps in a time-boxed adapter rather than limits of UI SDK. The
+first-paint gap comes from custom elements only taking their roles when their script runs. The
+hydration error is inferred, not proven, to come from the same cause: UI SDK writes the chosen
+label into `<ui-select-value>` when it upgrades, before React hydrates an element it rendered empty.
 The experiment's files stay out of this branch.
 
 While building a starter for that experiment, Next.js 16.4.3 refused the first `next build` with
