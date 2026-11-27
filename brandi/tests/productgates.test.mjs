@@ -945,6 +945,51 @@ describe('axe on a value drawn as text', () => {
   });
 });
 
+describe('axe read as an agent reads a page', () => {
+  // An agent acting on a page by role and name, as a screen reader's list of controls reads it, needs each control to
+  // say what it acts on, and a destructive dialog to say what happens. The kit names its rows (DataTable's checkbox is
+  // Select [Invoice 1042]) and Dialog carries a description; a product's own board can still lose either.
+  const rows = (cells) => `<table><caption>Invoices</caption><thead><tr><th>Invoice</th><th>Action</th></tr></thead><tbody>${cells.map(([n, c]) => `<tr><td>${n}</td><td>${c}</td></tr>`).join('')}</tbody></table>`;
+  const pages = {
+    '/edit-twice': rows([['[1042]', '<button>Edit</button>'], ['[1043]', '<button>Edit</button>']]),
+    '/edit-named': rows([['[1042]', '<button>Edit <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">[Invoice 1042]</span></button>'], ['[1043]', '<button aria-label="Edit [Invoice 1043]">Edit</button>']]),
+    '/one-row': rows([['[1042]', '<button>Edit</button>']]),
+    '/menus': '<ul><li>[Harbour Physio] <button aria-haspopup="menu">More actions</button></li><li>[Northside Vets] <button aria-haspopup="menu">More actions</button></li></ul>',
+    '/same-link': '<ul><li><a href="/clients/harbour">[Harbour Physio]</a>, invoice [1042]</li><li><a href="/clients/harbour">[Harbour Physio]</a>, invoice [1046]</li></ul>',
+    '/links-apart': '<ul><li><a href="/shifts/1">[Priya Nair]</a></li><li><a href="/shifts/5">[Priya Nair]</a></li></ul>',
+    '/hidden': rows([['[1042]', '<button>Edit</button>'], ['[1043]', '<button style="display:none">Edit</button>']]),
+    '/open-menu': '<ul><li>[1042] <div role="menu" aria-label="[1042]"><div role="menuitem" tabindex="-1">Delete</div></div></li><li>[1043] <div role="menu" aria-label="[1043]"><div role="menuitem" tabindex="-1">Delete</div></div></li></ul>',
+    '/two-lists': '<ul><li><button>Edit</button></li></ul><ul><li><button>Edit</button></li></ul>',
+    '/confirm-bare': '<div role="dialog" aria-label="Delete 3 draft invoices?"><button>Cancel</button><button data-variant="destructive-solid">Delete 3 invoices</button></div>',
+    '/confirm-said': '<div role="dialog" aria-label="Delete 3 draft invoices?" aria-describedby="d"><p id="d">[Invoice 1042], [1043] and [1044] go for good.</p><button>Cancel</button><button data-variant="destructive-solid">Delete 3 invoices</button></div>',
+    '/confirm-lost': '<div role="dialog" aria-label="Delete 3 draft invoices?" aria-describedby="gone"><button data-variant="destructive-solid">Delete 3 invoices</button></div>',
+    '/dialog-safe': '<div role="dialog" aria-label="Share [Invoice 1042]"><button>Copy link</button></div>',
+  };
+  let run;
+  before(async () => {
+    if (needsKit.skip) return;
+    run = await axePagesOn(
+      (url) => (pages[url] ? pageOf(`<h1>A board</h1>${pages[url]}`) : null),
+      (base) => Object.keys(pages).map((p) => ({ kind: 'board', label: p, url: `${base}${p}`, width: 1440, height: 900, theme: 'light' }))
+    );
+  });
+  const found = (label, id) => run.result(label).violations.find((v) => v.id === id);
+
+  test('a control repeated in two rows of one table or list fails unless it names its row, or both rows link to one place', needsKit, () => {
+    assert.deepEqual(found('/edit-twice', 'row-control-unnamed')?.nodes, ['tbody: "edit" in 2 rows']);
+    assert.deepEqual(found('/menus', 'row-control-unnamed')?.nodes, ['ul: "more actions" in 2 rows']);
+    assert.deepEqual(found('/links-apart', 'row-control-unnamed')?.nodes, ['ul: "[priya nair]" in 2 rows'], 'one name, two places');
+    for (const p of ['/edit-named', '/one-row', '/same-link', '/hidden', '/open-menu', '/two-lists']) assert.equal(found(p, 'row-control-unnamed'), undefined, p);
+  });
+
+  test('a dialog with a destructive button fails without a description it can read; one that says what happens, or has nothing destructive, passes', needsKit, () => {
+    assert.deepEqual(found('/confirm-bare', 'destructive-dialog-undescribed')?.nodes, ['div: Delete 3 draft invoices?']);
+    assert.ok(found('/confirm-lost', 'destructive-dialog-undescribed'), 'a description id that names nothing says nothing');
+    assert.equal(found('/confirm-said', 'destructive-dialog-undescribed'), undefined);
+    assert.equal(found('/dialog-safe', 'destructive-dialog-undescribed'), undefined);
+  });
+});
+
 describe('axe on a states strip of phone frames', () => {
   // One device frame per state (06-canvas.md, section 3) puts a top bar's header in every frame: at the top level each
   // is a banner, and the strip's title and captions sit outside every landmark. A run's strip failed axe on 65 region

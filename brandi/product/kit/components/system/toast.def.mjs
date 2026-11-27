@@ -29,7 +29,7 @@ export default {
     { name: "action", type: "string", doc: 'The action\'s label when the action can be reversed: "Undo".' },
     { name: "onAction", type: "() => void", doc: "Runs the action." },
     { name: "onClose", type: "() => void", doc: "Shows a close button. Without it there is none." },
-    { name: "closeLabel", type: "string", default: '"Dismiss"', doc: "The close button's accessible name." },
+    { name: "closeLabel", type: "string", default: '"Dismiss"', doc: "The close button's label. Its accessible name, like Undo's, ends with the toast's sentence: Dismiss [3] invoices sent." },
     { name: "floating", type: "boolean", default: "false", doc: "Fixed at the bottom centre of the window, never wider than the screen, as a polite status. ToastRegion places its own toasts." },
   ],
   notes: {
